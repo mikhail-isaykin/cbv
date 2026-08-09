@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+  {% if post.image %}
+    <img src="{{ post.image.url }}" alt="{{ post.title }}" width="250">
+  {% else %}
+    <p>Нет картинок</p>
+  {% endif %}
+  <strong>{{ post.title }}</strong>
+  <p>{{ post.description }}</p>
+  <small>{{ post.created_at }}</small>
+  <hr>
+  <span>{{ post.category.title }}</span>
+  {% if request.user == post.author or request.user.is_staff %}
+    <a href="{% url 'post_update' slug=post.slug %}" class="btn btn-sm btn-primary">Редактировать пост</a>
+  {% endif %}
+{% endblock content %}
