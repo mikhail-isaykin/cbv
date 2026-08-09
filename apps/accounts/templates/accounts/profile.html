@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="card border-0">
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-3">
+          <figure>
+            {% if profile.avatar %}
+              <img src="{{ profile.avatar.url }}"
+                   class="img-fluid rounded-0"
+                   alt="Аватар {{ profile.user.username }}">
+              <figcaption class="text-center mt-1">{{ profile.user.username }}</figcaption>
+            {% else %}
+              <div class="d-flex align-items-center justify-content-center h-100">
+                <p>Нет картинки</p>
+              </div>
+            {% endif %}
+          </figure>
+        </div>
+        <div class="col-md-9">
+          <h5 class="card-title">{{ profile }}</h5>
+          <div class="card-text">
+            <ul>
+              <li>Никнейм: {{ profile.user.username }}</li>
+              {% if profile.user.get_full_name %}
+                <li>Имя и фамилия: {{ profile.user.get_full_name }}</li>
+              {% endif %}
+              <li>Заходил: {{ profile.user.last_login }}</li>
+              <li>Дата рождения: {{ profile.birth_date }}</li>
+              <li>О себе: {{ profile.bio }}</li>
+            </ul>
+            {% if request.user == profile.user or request.user.is_staff %}
+              <a href="{% url 'profile_edit' %}" class="btn btn-sm btn-primary">Редактировать профиль</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
