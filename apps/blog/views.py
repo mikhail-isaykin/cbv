@@ -57,7 +57,7 @@ class PostCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = Post
     form_class = PostCreateForm
     template_name = 'blog/post_create.html'
-    extra_context = {'title': 'Добавление статьи на сайт'}  # noqa: RUF012
+    extra_context = {'title': 'Добавление статьи на сайт'}
     success_message = 'Запись была успешно создана!'
 
     def form_valid(self, form):

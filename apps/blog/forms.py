@@ -1,13 +1,13 @@
 from django import forms
 
-from .models import Post
+from .models import Post, Comment
 
 
 class PostCreateForm(forms.ModelForm):
     class Meta:
         model = Post
         fields = ('category', 'title', 'image', 'fixed', 'excerpt', 'description', 'status')
-        widgets = {  #noqa: RUF012
+        widgets = {
             'category': forms.Select(attrs={
                 'class': 'form-select',
                 'autocomplete': 'off',
@@ -46,3 +46,20 @@ class PostUpdateForm(PostCreateForm):
     """
     Форма обновления статьи на сайте
     """
+
+
+class CommentCreateForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ('text',)
+        widgets = {
+            'text': forms.Textarea(attrs={
+                'cols': 30,
+                'rows': 5,
+                'class': 'form-control',
+            }),
+        }
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['text'].label = ''

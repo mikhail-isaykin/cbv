@@ -121,3 +121,40 @@ class Category(MPTTModel):
 
     def get_absolute_url(self):
         return reverse('post_from_category', kwargs={'slug': self.slug})
+
+
+class Comment(MPTTModel):
+    class Status(models.TextChoices):
+        PUBLISHED = 'PB', 'Published'
+        DRAFT = 'DF', 'Draft'
+    
+    parent = TreeForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name='children',
+        )
+    post = models.ForeignKey(
+        'Post',
+        on_delete=models.CASCADE,
+        related_name='comments',
+        )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        )
+    text = models.TextField()
+    status = models.CharField(choices=Status.choices, default=Status.PUBLISHED, max_length=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class MPTTMeta:
+        order_insertion_by = ('-created_at',)
+    
+    class Meta:
+        ordering = ('-created_at',)
+    
+    def __str__(self):
+        return f'{self.author}:{self.text}'
