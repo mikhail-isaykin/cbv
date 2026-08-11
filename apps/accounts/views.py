@@ -69,6 +69,7 @@ def profile_edit(request):  # Profile + User
 class UserRegisterView(SuccessMessageMixin, CreateView):
     model = User
     form_class = UserRegisterForm
+    template_name = 'accounts/register.html'
     success_url = reverse_lazy('index')
     extra_context = {'title': 'Регистрация на сайте'}
     success_message = 'Вы успешно зарегистрировались. Вход выполнен!'
@@ -82,6 +83,6 @@ class UserRegisterView(SuccessMessageMixin, CreateView):
 class UserLoginView(SuccessMessageMixin, LoginView):
     redirect_authenticated_user = True
     authentication_form = UserLoginForm
-    template_name = 'accounts/user_login.html'
+    template_name = 'accounts/login.html'
     extra_context = {'title': 'Авторизация на сайте'}
     success_message = 'Добро пожаловать на сайт!'

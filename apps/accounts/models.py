@@ -13,7 +13,7 @@ class Profile(models.Model):
         related_name='profile',
     )
     slug = AutoSlugField(
-        populate_from=lambda instance: instance.user.username,
+        populate_from='user.username',
         unique=True,
         editable=True,
         slugify=pytils_slugify,
