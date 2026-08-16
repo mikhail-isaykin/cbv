@@ -49,6 +49,11 @@ class PostUpdateForm(PostCreateForm):
 
 
 class CommentCreateForm(forms.ModelForm):
+    parent = forms.ModelChoiceField(
+        queryset=Comment.objects.all(),
+        required=False,
+        widget=forms.HiddenInput,
+    )
     class Meta:
         model = Comment
         fields = ('text',)
