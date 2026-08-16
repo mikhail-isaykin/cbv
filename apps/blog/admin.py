@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django_mptt_admin.admin import DjangoMpttAdmin
 
-from .models import Category, Post
+from .models import Category, Post, Comment
 
 
 @admin.register(Category)
@@ -42,3 +42,10 @@ class PostAdmin(admin.ModelAdmin):
         else:
             obj.updater = request.user
         super().save_model(request, obj, form, change)
+
+
+@admin.register(Comment)
+class CommentAdmin(DjangoMpttAdmin):
+    list_display = ('author', 'post', 'text', 'status', 'created_at')
+    list_filter = ('status', 'created_at')
+    search_fields = ('text', 'author__username')
