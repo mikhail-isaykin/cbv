@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load mptt_tags %}
 {% block content %}
   {% if post.image %}
     <img src="{{ post.image.url }}" alt="{{ post.title }}" width="250">
@@ -11,6 +12,26 @@
   <hr>
   <span>{{ post.category.title }}</span>
   {% if request.user == post.author or request.user.is_staff %}
-    <a href="{% url 'post_update' slug=post.slug %}" class="btn btn-sm btn-primary">Редактировать пост</a>
+    <a href="{% url 'post_update' slug=post.slug %}"
+       class="btn btn-sm btn-primary">Редактировать пост</a>
   {% endif %}
+  <hr>
+  <h4>Комментарии</h4>
+  <form hx-post="{% url 'comment_create' post.id %}"
+        hx-target="#comments-list"
+        hx-swap="afterbegin"
+        hx-on::after-request="this.reset()">
+    {% csrf_token %}
+    {{ form.text }}
+    <button type="submit" class="btn btn-primary mt-2">Отправить</button>
+  </form>
+  <div id="comments-list">
+    {% if comments %}
+      {% recursetree comments %}
+        {% include 'blog/includes/_comment.html' with comment=node %}
+      {% endrecursetree %}
+    {% else %}
+      <p>Пока нет комментариев.</p>
+    {% endif %}
+  </div>
 {% endblock content %}

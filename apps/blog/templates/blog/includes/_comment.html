@@ -1,0 +1,38 @@
+<div class="comment mb-3"
+     id="comment-{{ comment.id }}"
+     x-data="{ open: false }"
+     @htmx:after-request="open = false">
+  <div class="d-flex">
+    {% if comment.author.profile.avatar %}
+      <img src="{{ comment.author.profile.avatar.url }}"
+           alt="{{ comment.author.username }}"
+           width="48"
+           height="48"
+           class="rounded-circle me-2">
+    {% else %}
+      <img src="https://via.placeholder.com/48"
+           alt="{{ comment.author.username }}"
+           width="48"
+           height="48"
+           class="rounded-circle me-2">
+    {% endif %}
+    <div class="w-100">
+      <strong>{{ comment.author.username }}</strong>
+      <small class="text-muted">{{ comment.created_at }}</small>
+      <p class="mb-0">{{ comment.text }}</p>
+      <button class="btn btn-sm btn-link p-0" @click="open = !open">Ответить</button>
+      <form x-show="open"
+            hx-post="{% url 'comment_create' post.id %}"
+            hx-target="#replies-{{ comment.id }}"
+            hx-swap="beforeend"
+            hx-on::after-request="this.reset()"
+            class="mt-2">
+        {% csrf_token %}
+        <input type="hidden" name="parent" value="{{ comment.id }}">
+        {{ form.text }}
+        <button type="submit" class="btn btn-sm btn-primary mt-1">Отправить</button>
+      </form>
+      <div id="replies-{{ comment.id }}" class="ms-3 ps-3 border-start">{{ children }}</div>
+    </div>
+  </div>
+</div>
