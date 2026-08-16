@@ -1,17 +1,20 @@
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.messages.views import SuccessMessageMixin
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
+from taggit.models import Tag
 
-from .forms import PostCreateForm, PostUpdateForm
+from .forms import CommentCreateForm, PostCreateForm, PostUpdateForm
 from .models import Category, Post
 
 
 class PostListView(ListView):
     template_name = 'blog/index.html'
     context_object_name = 'posts'
-    paginate_by = 1
+    paginate_by = 5
 
     def get_queryset(self):
         return Post.published.select_related('author', 'category').all()
@@ -32,6 +35,8 @@ class PostDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = self.object.title
+        context['comments'] = self.object.comments.all()
+        context['form'] = CommentCreateForm()
         return context
 
 
@@ -90,3 +95,47 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixi
     def form_valid(self, form):
         form.instance.updater = self.request.user
         return super().form_valid(form)
+
+
+@login_required
+@require_POST
+def comment_create(request, post_id):
+    form = CommentCreateForm(request.POST)
+    if not form.is_valid():
+        return render(request, 'blog/includes/_comment_errors.html', {'form': form}, status=400)
+
+    comment = form.save(commit=False)
+    comment.post_id = post_id
+    comment.author = request.user
+    comment.parent = form.cleaned_data.get('parent')
+    comment.save()
+
+    return render(
+        request,
+        'blog/includes/_comment.html',
+        {
+            'comment': comment,
+            'post': comment.post,
+            'form': CommentCreateForm(),
+            'required': True,
+        },
+    )
+
+
+class PostByTagListView(PostListView):
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.tag = get_object_or_404(Tag, slug=kwargs['tag'])
+    
+    def get_queryset(self):
+        self.tag = get_object_or_404(Tag, slug=self.kwargs['tag'])
+        queryset = super().get_queryset().filter(tags__slug=self.tag.slug)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.tag:
+            context['title'] = f'Статьи по тегу: {self.tag.name}'
+        else:
+            context['title'] = 'Все статьи'
+        return context
