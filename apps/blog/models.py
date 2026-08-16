@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.utils.text import Truncator
 from mptt.models import MPTTModel, TreeForeignKey
 from pytils.translit import slugify as pytils_slugify
+from taggit.managers import TaggableManager
 
 
 class PostManager(models.Manager):
@@ -61,6 +62,7 @@ class Post(models.Model):
 
     objects = models.Manager()
     published = PostManager()
+    tags = TaggableManager()
 
     class Meta:
         ordering = ('-fixed', '-created_at')
