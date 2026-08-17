@@ -1,20 +1,20 @@
 from django.contrib import admin
 from django_mptt_admin.admin import DjangoMpttAdmin
 
-from .models import Category, Post, Comment
+from .models import Category, Comment, Post, RuTag
 
 
 @admin.register(Category)
 class CategoryAdmin(DjangoMpttAdmin):
-    #list_display = ('tree_actions', 'indented_title', 'posts_count')
-    #list_display_links = ('indented_title',)
+    # list_display = ('tree_actions', 'indented_title', 'posts_count')
+    # list_display_links = ('indented_title',)
     search_fields = ('title', 'description')
-    
+
     def get_readonly_fields(self, request, obj=None):
         if obj is None:
             return ('slug',)
         return ()
-    
+
     @admin.display(description='Posts')
     def posts_count(self, obj):
         return obj.posts.count()
@@ -30,7 +30,7 @@ class PostAdmin(admin.ModelAdmin):
     list_editable = ('fixed', 'status')
     date_hierarchy = 'created_at'
     exclude = ('author', 'updater')
-    
+
     def get_readonly_fields(self, request, obj=None):
         if obj is None:
             return ('slug',)
@@ -49,3 +49,19 @@ class CommentAdmin(DjangoMpttAdmin):
     list_display = ('author', 'post', 'text', 'status', 'created_at')
     list_filter = ('status', 'created_at')
     search_fields = ('text', 'author__username')
+
+
+@admin.register(RuTag)
+class RuTagAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug')
+    search_fields = ('name',)
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj is None:
+            return ('slug',)
+        return ()
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields['slug'].required = False
+        return form
