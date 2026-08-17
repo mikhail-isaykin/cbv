@@ -5,10 +5,9 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
-from taggit.models import Tag
 
 from .forms import CommentCreateForm, PostCreateForm, PostUpdateForm
-from .models import Category, Post
+from .models import Category, Post, RuTag
 
 
 class PostListView(ListView):
@@ -102,6 +101,7 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixi
 def comment_create(request, post_id):
     form = CommentCreateForm(request.POST)
     if not form.is_valid():
+        print(form.errors)
         return render(request, 'blog/includes/_comment_errors.html', {'form': form}, status=400)
 
     comment = form.save(commit=False)
@@ -125,17 +125,12 @@ def comment_create(request, post_id):
 class PostByTagListView(PostListView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
-        self.tag = get_object_or_404(Tag, slug=kwargs['tag'])
-    
+        self.tag = get_object_or_404(RuTag, slug=kwargs['tag'])
+
     def get_queryset(self):
-        self.tag = get_object_or_404(Tag, slug=self.kwargs['tag'])
-        queryset = super().get_queryset().filter(tags__slug=self.tag.slug)
-        return queryset
+        return super().get_queryset().filter(tags__slug=self.tag.slug)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if self.tag:
-            context['title'] = f'Статьи по тегу: {self.tag.name}'
-        else:
-            context['title'] = 'Все статьи'
+        context['title'] = f'Статьи по тегу: {self.tag.name}'
         return context
