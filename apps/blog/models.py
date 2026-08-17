@@ -7,6 +7,29 @@ from django.utils.text import Truncator
 from mptt.models import MPTTModel, TreeForeignKey
 from pytils.translit import slugify as pytils_slugify
 from taggit.managers import TaggableManager
+from taggit.models import GenericTaggedItemBase, TagBase
+from tinymce.models import HTMLField
+
+
+class RuTag(TagBase):
+    def slugify(self, tag, i=None):
+        slug = pytils_slugify(tag)
+        if i is not None:
+            slug += f'-{i + 1}'
+        return slug
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = self.slugify(self.name)
+        super().save(*args, **kwargs)
+
+
+class RuTaggedItem(GenericTaggedItemBase):
+    tag = models.ForeignKey(
+        RuTag,
+        related_name='%(app_label)s_%(class)s_items',
+        on_delete=models.CASCADE,
+    )
 
 
 class PostManager(models.Manager):
@@ -55,14 +78,14 @@ class Post(models.Model):
     slug = AutoSlugField(populate_from='title', unique=True, editable=True, slugify=pytils_slugify)
     fixed = models.BooleanField(default=False)
     excerpt = models.CharField(max_length=155, blank=True)
-    description = models.TextField()
+    description = HTMLField()
     status = models.CharField(choices=Status.choices, default=Status.DRAFT, max_length=2)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     objects = models.Manager()
     published = PostManager()
-    tags = TaggableManager()
+    tags = TaggableManager(through=RuTaggedItem)
 
     class Meta:
         ordering = ('-fixed', '-created_at')
@@ -129,34 +152,34 @@ class Comment(MPTTModel):
     class Status(models.TextChoices):
         PUBLISHED = 'PB', 'Published'
         DRAFT = 'DF', 'Draft'
-    
+
     parent = TreeForeignKey(
         'self',
         on_delete=models.CASCADE,
         blank=True,
         null=True,
         related_name='children',
-        )
+    )
     post = models.ForeignKey(
         'Post',
         on_delete=models.CASCADE,
         related_name='comments',
-        )
+    )
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='comments',
-        )
+    )
     text = models.TextField()
     status = models.CharField(choices=Status.choices, default=Status.PUBLISHED, max_length=2)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class MPTTMeta:
         order_insertion_by = ('-created_at',)
-    
+
     class Meta:
         ordering = ('-created_at',)
-    
+
     def __str__(self):
         return f'{self.author}:{self.text}'
