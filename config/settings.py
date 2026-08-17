@@ -9,6 +9,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: don't run with debug turned on in production!
 SECRET_KEY = config('SECRET_KEY')
 
+ALTCHA_HMAC_KEY = config('ALTCHA_HMAC_KEY')
+
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 SITE_ID = 1
@@ -33,6 +35,8 @@ INSTALLED_APPS = [
     'debug_toolbar',
     'django_cleanup.apps.CleanupConfig',
     'taggit',
+    'django_altcha',
+    'tinymce',
 ]
 
 MIDDLEWARE = [
